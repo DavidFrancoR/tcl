@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teorema Central do Limite - Parafusos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 200px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .control-group input, .control-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input:focus, .control-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            color: white;
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(240, 147, 251, 0.6);
+        }
+
+        .btn-reset {
+            background: linear-gradient(45deg, #ffecd2, #fcb69f);
+            color: #333;
+            box-shadow: 0 4px 15px rgba(255, 236, 210, 0.4);
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 236, 210, 0.6);
+        }
+
+        .btn-info {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6);
+        }
+
+        .btn-export {
+            background: linear-gradient(45deg, #43e97b, #38f9d7);
+            color: #333;
+            box-shadow: 0 4px 15px rgba(67, 233, 123, 0.4);
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 233, 123, 0.6);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .unit {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .time-series-container {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .time-series-container h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #667eea;
+            font-size: 1.3em;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chart-container h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #667eea;
+            font-size: 1.3em;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .animation-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100px;
+            margin-bottom: 20px;
+        }
+
+        .screw {
+            width: 20px;
+            height: 20px;
+            background: #888;
+            border-radius: 50%;
+            margin: 2px;
+            animation: float 2s ease-in-out infinite;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .screw:nth-child(odd) {
+            animation-delay: 0.5s;
+        }
+
+                @media (max-width: 768px) {
+            .charts {
+                grid-template-columns: 1fr;
+            }
+            
+            .time-series-container {
+                grid-column: 1;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔩 Teorema Central do Limite</h1>
+            <p>Simulação da produção de parafusos: observe como as médias das amostras se aproximam de uma distribuição normal, mesmo que os pesos individuais não sigam esta distribuição.</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="sampleSize">Tamanho da Amostra:</label>
+                <input type="range" id="sampleSize" min="10" max="100" value="50">
+                <span id="sampleSizeValue">50</span> parafusos
+            </div>
+            
+            <div class="control-group">
+                <label for="numSamples">Número de Amostras:</label>
+                <input type="range" id="numSamples" min="50" max="1000" value="200">
+                <span id="numSamplesValue">200</span> coletas
+            </div>
+            
+            <div class="control-group">
+                <label for="distribution">Distribuição Original:</label>
+                <select id="distribution">
+                    <option value="uniform">Uniforme</option>
+                    <option value="exponential">Exponencial</option>
+                    <option value="bimodal">Bimodal</option>
+                    <option value="normal">Normal</option>
+                    <option value="skewed">Assimétrica</option>
+                    <option value="poisson">Poisson</option>
+                    <option value="beta">Beta</option>
+                    <option value="gamma">Gamma</option>
+                    <option value="triangular">Triangular</option>
+                    <option value="cauchy">Cauchy</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="speed">Velocidade da Simulação:</label>
+                <input type="range" id="speed" min="1" max="10" value="5">
+                <span id="speedValue">5</span>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn btn-primary" onclick="startSimulation()">🚀 Iniciar Simulação</button>
+            <button class="btn btn-secondary" onclick="addSample()">➕ Adicionar Amostra</button>
+            <button class="btn btn-reset" onclick="resetSimulation()">🔄 Resetar</button>
+            <button class="btn btn-info" onclick="showNormalCurve()">📊 Mostrar Curva Normal</button>
+            <button class="btn btn-export" onclick="exportData()">📥 Exportar Dados</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="animation-container" id="animationContainer">
+            <div class="screw"></div>
+            <div class="screw"></div>
+            <div class="screw"></div>
+            <div class="screw"></div>
+            <div class="screw"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Amostras Coletadas</h3>
+                <div class="value" id="samplesCollected">0</div>
+                <div class="unit">de <span id="totalSamples">200</span></div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Média das Médias</h3>
+                <div class="value" id="meanOfMeans">0.00</div>
+                <div class="unit">gramas</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Desvio Padrão</h3>
+                <div class="value" id="stdDev">0.00</div>
+                <div class="unit">gramas</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Valor Teórico</h3>
+                <div class="value" id="theoreticalStd">0.00</div>
+                <div class="unit">gramas</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Teste de Normalidade</h3>
+                <div class="value" id="normalityTest">-</div>
+                <div class="unit">p-value</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Assimetria</h3>
+                <div class="value" id="skewness">0.00</div>
+                <div class="unit">coeficiente</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Curtose</h3>
+                <div class="value" id="kurtosis">0.00</div>
+                <div class="unit">coeficiente</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Convergência</h3>
+                <div class="value" id="convergence">-</div>
+                <div class="unit">%</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Última Média</h3>
+                <div class="value" id="lastSample">-</div>
+                <div class="unit">gramas</div>
+            </div>
+        </div>
+
+        <div class="time-series-container">
+            <h3>📈 Evolução das Médias ao Longo do Tempo</h3>
+            <canvas id="timeSeriesChart"></canvas>
+        </div>
+
+        <div class="charts">
+            <div class="chart-container">
+                <h3>📊 Distribuição Original</h3>
+                <canvas id="originalChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3>📈 Distribuição das Médias</h3>
+                <canvas id="meansChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let originalChart, meansChart, timeSeriesChart;
+        let sampleMeans = [];
+        let cumulativeMeans = [];
+        let isSimulating = false;
+        let simulationInterval;
+
+        // Parâmetros da simulação
+        const populationMean = 10; // peso médio dos parafusos em gramas
+        const populationStd = 2;   // desvio padrão da população
+
+        // Inicializar gráficos
+        function initCharts() {
+            const originalCtx = document.getElementById('originalChart').getContext('2d');
+            const meansCtx = document.getElementById('meansChart').getContext('2d');
+            const timeSeriesCtx = document.getElementById('timeSeriesChart').getContext('2d');
+
+            originalChart = new Chart(originalCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Frequência',
+                        data: [],
+                        backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            meansChart = new Chart(meansCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Frequência',
+                        data: [],
+                        backgroundColor: 'rgba(245, 87, 108, 0.7)',
+                        borderColor: 'rgba(245, 87, 108, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            timeSeriesChart = new Chart(timeSeriesCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Média da Amostra',
+                        data: [],
+                        borderColor: 'rgba(67, 233, 123, 1)',
+                        backgroundColor: 'rgba(67, 233, 123, 0.1)',
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
+                    }, {
+                        label: 'Média Cumulativa',
+                        data: [],
+                        borderColor: 'rgba(245, 87, 108, 1)',
+                        backgroundColor: 'rgba(245, 87, 108, 0.1)',
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 2,
+                        pointHoverRadius: 4,
+                        borderWidth: 3
+                    }, {
+                        label: 'Média Teórica',
+                        data: [],
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        fill: false,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: {
+                        duration: 300
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Número da Amostra'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Peso (gramas)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        // Gerar amostras da população
+        function generatePopulation(distribution, size = 1000) {
+            const population = [];
+            
+            for (let i = 0; i < size; i++) {
+                let value;
+                switch (distribution) {
+                    case 'uniform':
+                        value = Math.random() * 8 + 6; // uniforme entre 6 e 14
+                        break;
+                    case 'exponential':
+                        value = -Math.log(Math.random()) * 2 + 6; // exponencial deslocada
+                        break;
+                    case 'bimodal':
+                        value = Math.random() < 0.5 ? 
+                            Math.random() * 3 + 7 :  // primeiro pico
+                            Math.random() * 3 + 11; // segundo pico
+                        break;
+                    case 'normal':
+                        value = boxMuller() * 2 + 10; // normal padrão
+                        break;
+                    case 'skewed':
+                        value = Math.pow(Math.random(), 2) * 10 + 5; // assimétrica positiva
+                        break;
+                    case 'poisson':
+                        value = poissonRandom(3) + 7; // Poisson com lambda=3
+                        break;
+                    case 'beta':
+                        value = betaRandom(2, 5) * 8 + 6; // Beta(2,5)
+                        break;
+                    case 'gamma':
+                        value = gammaRandom(2, 2) + 6; // Gamma(2,2)
+                        break;
+                    case 'triangular':
+                        value = triangularRandom(6, 14, 10); // Triangular(6,14,10)
+                        break;
+                    case 'cauchy':
+                        value = cauchyRandom(10, 1); // Cauchy(10,1)
+                        value = Math.max(0, Math.min(20, value)); // limitar valores extremos
+                        break;
+                }
+                population.push(Math.max(0, value));
+            }
+            
+            return population;
+        }
+
+        // Funções para gerar distribuições específicas
+        function boxMuller() {
+            let u = 0, v = 0;
+            while(u === 0) u = Math.random();
+            while(v === 0) v = Math.random();
+            return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+        }
+
+        function poissonRandom(lambda) {
+            let L = Math.exp(-lambda);
+            let p = 1;
+            let k = 0;
+            do {
+                k++;
+                p *= Math.random();
+            } while (p > L);
+            return k - 1;
+        }
+
+        function betaRandom(alpha, beta) {
+            const gamma1 = gammaRandom(alpha, 1);
+            const gamma2 = gammaRandom(beta, 1);
+            return gamma1 / (gamma1 + gamma2);
+        }
+
+        function gammaRandom(shape, scale) {
+            if (shape < 1) {
+                return gammaRandom(shape + 1, scale) * Math.pow(Math.random(), 1 / shape);
+            }
+            
+            const d = shape - 1/3;
+            const c = 1 / Math.sqrt(9 * d);
+            
+            while (true) {
+                let x = boxMuller();
+                let v = 1 + c * x;
+                if (v <= 0) continue;
+                
+                v = v * v * v;
+                let u = Math.random();
+                
+                if (u < 1 - 0.0331 * x * x * x * x) {
+                    return d * v * scale;
+                }
+                
+                if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) {
+                    return d * v * scale;
+                }
+            }
+        }
+
+        function triangularRandom(min, max, mode) {
+            const u = Math.random();
+            const f = (mode - min) / (max - min);
+            
+            if (u < f) {
+                return min + Math.sqrt(u * (max - min) * (mode - min));
+            } else {
+                return max - Math.sqrt((1 - u) * (max - min) * (max - mode));
+            }
+        }
+
+        function cauchyRandom(x0, gamma) {
+            const u = Math.random();
+            return x0 + gamma * Math.tan(Math.PI * (u - 0.5));
+        }
+
+        // Calcular média de uma amostra
+        function calculateMean(sample) {
+            return sample.reduce((a, b) => a + b, 0) / sample.length;
+        }
+
+        // Calcular assimetria
+        function calculateSkewness(values) {
+            const mean = calculateMean(values);
+            const std = calculateStd(values);
+            const n = values.length;
+            
+            const skewness = values.reduce((sum, value) => {
+                return sum + Math.pow((value - mean) / std, 3);
+            }, 0) / n;
+            
+            return skewness;
+        }
+
+        // Calcular curtose
+        function calculateKurtosis(values) {
+            const mean = calculateMean(values);
+            const std = calculateStd(values);
+            const n = values.length;
+            
+            const kurtosis = values.reduce((sum, value) => {
+                return sum + Math.pow((value - mean) / std, 4);
+            }, 0) / n - 3;
+            
+            return kurtosis;
+        }
+
+        // Teste de normalidade simplificado (baseado em assimetria e curtose)
+        function simpleNormalityTest(values) {
+            if (values.length < 30) return "N/A";
+            
+            const skewness = Math.abs(calculateSkewness(values));
+            const kurtosis = Math.abs(calculateKurtosis(values));
+            
+            // Critério simples: se assimetria < 1 e curtose < 1, consideramos "normal"
+            if (skewness < 0.5 && kurtosis < 0.5) {
+                return "0.05+";
+            } else if (skewness < 1 && kurtosis < 1) {
+                return "0.01+";
+            } else {
+                return "<0.01";
+            }
+        }
+
+        // Calcular intervalo de confiança
+        function calculateConfidenceInterval(values, confidence = 0.95) {
+            if (values.length < 2) return "-";
+            
+            const mean = calculateMean(values);
+            const std = calculateStd(values);
+            const n = values.length;
+            
+            // Usar distribuição t para amostras pequenas, z para grandes
+            const tValue = n < 30 ? 2.045 : 1.96; // aproximação
+            const margin = tValue * (std / Math.sqrt(n));
+            
+            return `[${(mean - margin).toFixed(2)}, ${(mean + margin).toFixed(2)}]`;
+        }
+
+        // Atualizar histograma
+        function updateHistogram(chart, data, bins = 20) {
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            const binWidth = (max - min) / bins;
+            
+            const histogram = new Array(bins).fill(0);
+            const labels = [];
+            
+            for (let i = 0; i < bins; i++) {
+                labels.push((min + i * binWidth).toFixed(1));
+            }
+            
+            data.forEach(value => {
+                const binIndex = Math.min(Math.floor((value - min) / binWidth), bins - 1);
+                histogram[binIndex]++;
+            });
+            
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = histogram;
+            chart.update();
+        }
+
+        // Coletar uma amostra
+        function collectSample() {
+            const sampleSize = parseInt(document.getElementById('sampleSize').value);
+            const distribution = document.getElementById('distribution').value;
+            
+            const population = generatePopulation(distribution, 10000);
+            const sample = [];
+            
+            for (let i = 0; i < sampleSize; i++) {
+                const randomIndex = Math.floor(Math.random() * population.length);
+                sample.push(population[randomIndex]);
+            }
+            
+            const sampleMean = calculateMean(sample);
+            sampleMeans.push(sampleMean);
+            
+            // Calcular média cumulativa
+            const cumulativeMean = calculateMean(sampleMeans);
+            cumulativeMeans.push(cumulativeMean);
+            
+            // Atualizar gráfico de série temporal
+            updateTimeSeriesChart();
+            
+            // Atualizar estatísticas
+            updateStats();
+            
+            // Atualizar gráficos
+            updateHistogram(originalChart, sample);
+            updateHistogram(meansChart, sampleMeans);
+            
+            // Atualizar barra de progresso
+            const progress = (sampleMeans.length / parseInt(document.getElementById('numSamples').value)) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            return sampleMean;
+        }
+
+        // Atualizar gráfico de série temporal
+        function updateTimeSeriesChart() {
+            const labels = Array.from({length: sampleMeans.length}, (_, i) => i + 1);
+            const theoreticalMean = Array(sampleMeans.length).fill(populationMean);
+            
+            timeSeriesChart.data.labels = labels;
+            timeSeriesChart.data.datasets[0].data = sampleMeans;
+            timeSeriesChart.data.datasets[1].data = cumulativeMeans;
+            timeSeriesChart.data.datasets[2].data = theoreticalMean;
+            
+            // Manter apenas os últimos 100 pontos para performance
+            if (sampleMeans.length > 100) {
+                timeSeriesChart.data.labels = labels.slice(-100);
+                timeSeriesChart.data.datasets[0].data = sampleMeans.slice(-100);
+                timeSeriesChart.data.datasets[1].data = cumulativeMeans.slice(-100);
+                timeSeriesChart.data.datasets[2].data = theoreticalMean.slice(-100);
+            }
+            
+            timeSeriesChart.update('none'); // sem animação para melhor performance
+        }
+
+        // Atualizar estatísticas
+        function updateStats() {
+            document.getElementById('samplesCollected').textContent = sampleMeans.length;
+            document.getElementById('totalSamples').textContent = document.getElementById('numSamples').value;
+            
+            if (sampleMeans.length > 0) {
+                const meanOfMeans = calculateMean(sampleMeans);
+                const stdDev = calculateStd(sampleMeans);
+                const sampleSize = parseInt(document.getElementById('sampleSize').value);
+                const theoreticalStd = populationStd / Math.sqrt(sampleSize);
+                const skewness = calculateSkewness(sampleMeans);
+                const kurtosis = calculateKurtosis(sampleMeans);
+                const normalityTest = simpleNormalityTest(sampleMeans);
+                const convergence = calculateConvergence(meanOfMeans, populationMean);
+                const lastSample = sampleMeans[sampleMeans.length - 1];
+                
+                document.getElementById('meanOfMeans').textContent = meanOfMeans.toFixed(2);
+                document.getElementById('stdDev').textContent = stdDev.toFixed(2);
+                document.getElementById('theoreticalStd').textContent = theoreticalStd.toFixed(2);
+                document.getElementById('skewness').textContent = skewness.toFixed(3);
+                document.getElementById('kurtosis').textContent = kurtosis.toFixed(3);
+                document.getElementById('normalityTest').textContent = normalityTest;
+                document.getElementById('convergence').textContent = convergence.toFixed(1);
+                document.getElementById('lastSample').textContent = lastSample.toFixed(2);
+            }
+        }
+
+        // Calcular convergência (quão próximo está da média teórica)
+        function calculateConvergence(observedMean, theoreticalMean) {
+            const difference = Math.abs(observedMean - theoreticalMean);
+            const convergence = Math.max(0, 100 - (difference / theoreticalMean * 100));
+            return convergence;
+        }
+
+        // Iniciar simulação
+        function startSimulation() {
+            if (isSimulating) return;
+            
+            isSimulating = true;
+            const numSamples = parseInt(document.getElementById('numSamples').value);
+            const speed = parseInt(document.getElementById('speed').value);
+            const delay = 110 - (speed * 10); // mais rápido = menos delay
+            
+            simulationInterval = setInterval(() => {
+                collectSample();
+                
+                if (sampleMeans.length >= numSamples) {
+                    clearInterval(simulationInterval);
+                    isSimulating = false;
+                }
+            }, delay);
+        }
+
+        // Mostrar curva normal teórica
+        function showNormalCurve() {
+            if (sampleMeans.length < 10) {
+                alert('Colete pelo menos 10 amostras para mostrar a curva normal!');
+                return;
+            }
+            
+            const mean = calculateMean(sampleMeans);
+            const std = calculateStd(sampleMeans);
+            
+            // Gerar pontos da curva normal
+            const normalCurve = [];
+            const min = mean - 3 * std;
+            const max = mean + 3 * std;
+            
+            for (let i = 0; i < 50; i++) {
+                const x = min + (max - min) * i / 49;
+                const y = (1 / (std * Math.sqrt(2 * Math.PI))) * 
+                         Math.exp(-0.5 * Math.pow((x - mean) / std, 2));
+                normalCurve.push({x: x, y: y * sampleMeans.length * 0.5}); // escalar para visualização
+            }
+            
+            // Adicionar linha da curva normal ao gráfico
+            meansChart.data.datasets.push({
+                label: 'Curva Normal Teórica',
+                data: normalCurve,
+                type: 'line',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                fill: false,
+                tension: 0.4
+            });
+            
+            meansChart.update();
+        }
+
+        // Exportar dados
+        function exportData() {
+            if (sampleMeans.length === 0) {
+                alert('Nenhum dado para exportar!');
+                return;
+            }
+            
+            const data = {
+                sampleMeans: sampleMeans,
+                statistics: {
+                    mean: calculateMean(sampleMeans),
+                    std: calculateStd(sampleMeans),
+                    skewness: calculateSkewness(sampleMeans),
+                    kurtosis: calculateKurtosis(sampleMeans),
+                    normalityTest: simpleNormalityTest(sampleMeans),
+                    confidenceInterval: calculateConfidenceInterval(sampleMeans)
+                },
+                parameters: {
+                    sampleSize: document.getElementById('sampleSize').value,
+                    distribution: document.getElementById('distribution').value,
+                    totalSamples: sampleMeans.length
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'simulacao_teorema_central_limite.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Adicionar uma amostra
+        function addSample() {
+            if (!isSimulating) {
+                collectSample();
+            }
+        }
+
+        // Resetar simulação
+        function resetSimulation() {
+            if (isSimulating) {
+                clearInterval(simulationInterval);
+                isSimulating = false;
+            }
+            
+            sampleMeans = [];
+            cumulativeMeans = [];
+            updateStats();
+            
+            originalChart.data.labels = [];
+            originalChart.data.datasets[0].data = [];
+            originalChart.update();
+            
+            meansChart.data.labels = [];
+            meansChart.data.datasets[0].data = [];
+            // Remover curva normal se existir
+            if (meansChart.data.datasets.length > 1) {
+                meansChart.data.datasets.pop();
+            }
+            meansChart.update();
+            
+            timeSeriesChart.data.labels = [];
+            timeSeriesChart.data.datasets[0].data = [];
+            timeSeriesChart.data.datasets[1].data = [];
+            timeSeriesChart.data.datasets[2].data = [];
+            timeSeriesChart.update();
+            
+            document.getElementById('progressFill').style.width = '0%';
+            
+            // Mostrar distribuição original
+            const distribution = document.getElementById('distribution').value;
+            const population = generatePopulation(distribution, 1000);
+            updateHistogram(originalChart, population);
+        }
+
+        // Event listeners
+        document.getElementById('sampleSize').addEventListener('input', function() {
+            document.getElementById('sampleSizeValue').textContent = this.value;
+        });
+
+        document.getElementById('numSamples').addEventListener('input', function() {
+            document.getElementById('numSamplesValue').textContent = this.value;
+        });
+
+        document.getElementById('speed').addEventListener('input', function() {
+            document.getElementById('speedValue').textContent = this.value;
+        });
+
+        // Atualizar gráfico da distribuição original quando mudar o tipo
+        document.getElementById('distribution').addEventListener('change', function() {
+            const population = generatePopulation(this.value, 1000);
+            updateHistogram(originalChart, population);
+        });
+
+        // Calcular desvio padrão
+        function calculateStd(values) {
+            const mean = calculateMean(values);
+            const squaredDiffs = values.map(value => Math.pow(value - mean, 2));
+            return Math.sqrt(calculateMean(squaredDiffs));
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            // Mostrar distribuição inicial
+            const population = generatePopulation('uniform', 1000);
+            updateHistogram(originalChart, population);
+        });
+    </script>
+</body>
+</html>
